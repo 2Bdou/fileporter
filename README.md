@@ -38,6 +38,40 @@ chmod +x fe.sh && ./fe.sh
 
 Just connect your GitHub repository — the platform auto-detects the `Dockerfile` and injects `PORT`. Zero manual configuration needed. All other variables (storage limits, encryption key, etc.) come with safe defaults.
 
+### 🌱 Bare-Metal Deployment for Low-Memory Machines (`fe-lite.sh`)
+
+Running on a tiny VPS (e.g. **1 vCPU / 256MB RAM / 5GB disk**)? Docker + nginx + certbot can eat most of your memory before File Express even starts. The lite script instead runs File Express as a plain `node` process (no Docker daemon) and replaces nginx+certbot with **Caddy** (automatic HTTPS + auto-renewal, one binary). Total memory footprint: **~135MB**.
+
+```bash
+./fe-lite.sh pack                  # 1) build & package — run on any machine with Node 20+
+./fe-lite.sh deploy [tar|URL]      # 2) deploy on the small machine (installs Node + Caddy + swap)
+./fe-lite.sh status|logs|update|uninstall
+```
+
+**Step 1 — Package (on a machine with Node 20+, NOT on the 256MB box):**
+```bash
+curl -sSfL https://raw.githubusercontent.com/2Bdou/fileporter/v2/fe-lite.sh -o fe-lite.sh && chmod +x fe-lite.sh
+./fe-lite.sh pack        # produces fileexpress-lite.tar.gz (~31MB)
+```
+
+**Step 2 — Deploy (on the small machine):**
+```bash
+# copy fe-lite.sh + fileexpress-lite.tar.gz to the small machine, then:
+./fe-lite.sh deploy fileexpress-lite.tar.gz
+```
+
+The deploy command automatically:
+- Creates a **512MB swap** if RAM < 512MB and no swap exists
+- Installs the official **Node 22** binary to `/usr/local`
+- Extracts to `/opt/fileexpress`, generates `.env` with a **random encryption key**
+- Registers a **systemd** service (heap capped at 128MB via `NODE_OPTIONS` to avoid OOM)
+- Installs **Caddy**, prompts for your domain → automatic HTTPS + auto-renewal
+- Verifies `/api/health` and prints the access URL
+
+> ⚠️ **Never run `npm run build` on a 256MB machine** — Vite needs 300–600MB and will OOM. Always build with `pack` on a bigger machine and deploy the tarball.
+
+> 🔄 `update` keeps your `.env` and uploaded files intact; `uninstall` keeps the data directory too.
+
 ### 🛠️ Manual Installation from Source
 
 **1. Install Node.js (Version 22 LTS or 24 Current Recommended)**
