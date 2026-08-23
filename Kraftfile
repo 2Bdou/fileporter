@@ -1,0 +1,11 @@
+spec: v0.7
+
+name: fileexpress
+
+runtime: base-compat:latest
+
+rootfs:
+  source: ./Dockerfile
+  format: erofs
+
+cmd: ["/usr/local/bin/node", "/app/dist/server.cjs"]

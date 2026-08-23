@@ -152,8 +152,9 @@ function diskSpaceGuard(req: express.Request, res: express.Response, next: expre
     }
 }
 
-const LOCAL_DB_PATH = path.join(process.cwd(), "local_db.json");
-const LOCAL_STORAGE_DIR = path.join(process.cwd(), "local_storage");
+const DATA_DIR = process.env.DATA_DIR || process.cwd();
+const LOCAL_DB_PATH = path.join(DATA_DIR, "local_db.json");
+const LOCAL_STORAGE_DIR = path.join(DATA_DIR, "local_storage");
 
 // 确保本地存储目录存在
 if (!fs.existsSync(LOCAL_STORAGE_DIR)) {
@@ -776,4 +777,3 @@ async function startServer() {
 }
 
 startServer();
-
